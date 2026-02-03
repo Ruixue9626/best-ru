@@ -6,7 +6,6 @@
     <title>best-ru | 隨機勵志語</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-    /*給你每天優質正能量！！*/
         :root {
             --glass-bg: rgba(255, 255, 255, 0.25);
             --glass-border: rgba(255, 255, 255, 0.4);
@@ -83,43 +82,44 @@
             color: var(--text-color);
             cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+            font-weight: bold;
         }
 
-        .btn-refresh { flex: 1; padding: 16px; border-radius: 30px; font-size: 1.2rem; font-weight: bold; }
-
-        /* 這裡修正了！設定按鈕會根據寬度變成橢圓形 /// */
-        .btn-config { 
-            width: clamp(60px, 15vw, 120px); /* 寬度會隨螢幕變化 */
-            height: 60px; 
-            border-radius: 50px; /* 這裡設大一點，就會隨寬度變橢圓 */
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 1.4rem;
-            flex-shrink: 0;
-        }
+        .btn-refresh { flex: 1; padding: 16px; border-radius: 30px; font-size: 1.2rem; }
+        .btn-config { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
         .btn-glass:active { transform: scale(0.9); background: rgba(255,255,255,0.4); }
 
+        /* --- 修正後的 Liquid Glass 設定介面 --- */
         #settings-menu {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.2);
+            background: rgba(0,0,0,0.15);
             display: none; align-items: center; justify-content: center;
             z-index: 100;
         }
         .settings-content {
             width: 85%; max-width: 350px;
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(25px) saturate(200%);
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px) saturate(180%);
             -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255,255,255,0.5);
-            border-radius: 30px; padding: 30px;
-            text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 35px; padding: 30px;
+            text-align: left; box-shadow: 0 20px 50px rgba(0,0,0,0.1);
         }
-        .settings-content input {
-            width: 100%; padding: 12px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.6);
-            background: rgba(255,255,255,0.3); margin: 15px 0; outline: none;
+        .settings-content h2 { text-align: center; margin-top: 0; margin-bottom: 20px; color: var(--text-color); font-size: 1.3rem; }
+        .settings-content label { display: block; margin: 15px 0 8px; font-weight: bold; font-size: 0.9rem; color: #555; }
+        
+        .settings-content input, .settings-content select {
+            width: 100%; padding: 12px; border-radius: 15px; 
+            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.3); margin-bottom: 10px; outline: none;
+            font-size: 1rem; color: var(--text-color);
+            font-family: inherit;
         }
-        .btn-close {
-            background: #fff; border: none; padding: 10px 25px; border-radius: 20px;
-            font-weight: bold; cursor: pointer; color: #555;
+        
+        /* 儲存按鈕回歸原本風格 */
+        .btn-save-glass {
+            width: 100%; padding: 14px; border-radius: 20px; margin-top: 20px;
+            font-size: 1.1rem;
         }
 
         .fade-in { animation: fadeIn 0.5s ease; }
@@ -154,63 +154,111 @@
 
 <div id="settings-menu" onclick="toggleSettings(false)">
     <div class="settings-content" onclick="event.stopPropagation()">
-        <h2>✧ 設定背景 ✧</h2>
-        <p style="font-size: 0.85rem; color: #555;">請貼上圖片連結（URL）</p>
+        <h2>✧ 偏好設定 ✧</h2>
+        
+        <label>語錄類型</label>
+        <select id="quote-type-select">
+            <option value="全部">全部混合</option>
+            <option value="勵志">勵志 (靜思語)</option>
+            <option value="肯定">肯定 (目標語)</option>
+            <option value="激勵">激勵 (衝勁語)</option>
+        </select>
+
+        <label>背景圖片 URL</label>
         <input type="text" id="bg-url-input" placeholder="https://...">
-        <button class="btn-close" onclick="applyBg()">套用！</button>
+        
+        <button class="btn-glass btn-save-glass" onclick="applySettings()">儲存設定</button>
     </div>
 </div>
 
 <script>
-    // 從你給的網站搬過來的 100 句喔！呼……///
-    const quotes = [
-        "心美，看什麼都順眼", "福，來自一顆懂得布施的心", "講話要溫和輕柔，態度要謙誠親切", "孝順要及時，行善也要及時",
-        "站在半路，比走到目標更辛苦", "多原諒別人，多得福，把量放大，福氣大", "心中有愛，才會人見人愛", "幸福不在得到多，而在計較少",
-        "把握當下，就是用心", "待人退一步，愛人寬一步，在人生道中就會活得很快樂", "要得到別人讚嘆，就得先讚嘆別人", "最有力量的菩薩，就是我們的手腦",
-        "不斷發揮生命功能，才是活著的人生", "聽到好話，要如海綿遇水，牢牢吸住", "不要總是要求別人給我什麼，要想我能為別人做什麼", "幫助別人，其實就是在幫助自己",
-        "不要只看到別人外在的污點，卻看不到自己內心的垃圾", "生活有朝氣，活得暢暢快快；工作講求效率，做得踏踏實實", "以愛心待人，以磊落的心胸接物，則人生到處充滿了真善美", "稻穗結得越飽滿，越往下垂；一個人越有成就，越有謙沖的胸襟",
-        "孝首重在順，要體貼親心，聲色柔順，切不可不耐與嫌煩", "人生能被人需要，能夠有份功能，為人付出，才是最幸福的人生", "欣賞他人，就是莊嚴自己", "成功在優點的發揮，失敗是缺點的累積",
-        "路必須去走方能到達，苦必須去受才可消除", "我們應該為別人的成就而生歡喜心", "有量就有福，有福心就靈，是謂福至心靈", "常能反省自己有無過失，即得解脫又自在",
-        "學佛就是要善加化解煩惱，尋求心靈的安定", "恆心就如滴水穿石，再大的困難與阻礙也能衝破", "要想家庭吉祥合睦，要常常起歡喜心", "做一切好事要把握時機，也要把握因緣",
-        "捨去昨日的好與壞，把握今日", "知足常樂，甘願做，歡喜受", "生氣是拿別人的過錯來懲罰自己", "人生多一份感恩，就多一份美化",
-        "縮小自我，擴大心胸，工作要歡喜，人與人要感恩", "愛與感恩，能喜淨心中的煩惱", "做好事要騰出時間，這是人生的目的，也是人生的義務", "生命只有數十年，慧命是永遠不滅的",
-        "願要大，志要堅，氣要柔，心要細", "為人處事要小心、細心，但不要小心眼", "能付出愛心就是福，能消除煩惱就是慧", "時時存好心，日日是好日",
-        "口說好話，心享好念，身行好事", "信心、毅力、勇氣三者具備，則天下沒有做不成的事", "口說好話如吐蓮花，口說壞話如吐毒蛇", "太陽光大，父母恩大，君子量大，小人氣大",
-        "理直氣要和，得理要饒人", "人要知福、惜福、再造福", "把貪的念轉為滿足，把滿足的念換做慈悲", "精神如能常滿足，就是最幸福的人生",
-        "改變自己是自救，影響別人是救人", "無欲、無求則力量不盡", "災要自己消，福要自己造，多造福，就可增無量的福報", "愛是無盡的財富，施比受更有福",
-        "想過去是雜念，想未來是妄想，最好把握當下時刻", "平安是福，快樂是慧", "人的心念意境，如能保持開朗清明，則所見都是美而善的", "紛亂的心田，開不出智慧的花朵",
-        "最好的臉部保養品，就是微笑與善念", "要將心比心，設身處地為別人想一想", "笑容，不但可以表答善意，還可以縮短人際間的距離", "福是來自一顆懂得布施的心",
-        "有時煩惱是來自不合理的欲望", "愛護身邊物，惜福常知足", "歡喜和感恩是消除煩惱的力量", "做好事不能少我一個，做壞事不能多我一個",
-        "幸福不在得到多，而在計較少", "臉上有笑容、心中有愛的人最可愛，就是菩薩", "無心去往壞處想，聽任何話都是好話", "師長的責任只是教導，實踐的路，學生必須自己去走",
-        "心中有愛，才會人見人愛", "忍一時之氣，免百日之憂", "改變別人，不如先改變自己", "常思己過，莫論人非，時時歡喜，時時吉祥",
-        "勿以善小而不為，勿以惡小而為之", "每一天都是做人的開始，每一時刻都是自己的警惕", "笑比皺眉好看，說話比呵斥自然", "去貪就簡，可使心靈得到無比的寧靜與解脫",
-        "求福壽倒不如求平安，平安就是添福壽", "最平常的人最富有", "問心無愧心最安，能夠付出、助人、救人，最是快樂", "待人退一步，愛人寬一寸，在人生道上就會活得很快樂",
-        "最幸福的人就是能寬容與悲憫一切眾生的人", "唯其尊重自己的人，才更勇於縮小自己", "退一步，讓一步，來成全別人，即是修養，即是修行", "面容動作、言談舉止，都是日常生活中修養忍辱得來的",
-        "難行能行，難為能為，才能昇華自我的人格", "人生要為善競爭，分秒必爭", "不要小看自己，因為人有無限的可能", "任何事都是從一個決心、一個種子開始",
-        "再好的機會、福報，如不能把握因緣，一樣會溜走", "有心就有福，有願就有力", "認錯、改過是勇氣，也是智慧", "一個永保感恩心的人，就比較不會陷入困境",
-        "心要像明月一樣，有水就有月；心要像天空一樣，雲開見青天", "心無邪惡，意無邪念，即常可自在，心正則邪不侵", "布施不是有錢人的專利，而是一份虔誠的愛心", "這世界總有比我們悲慘的人，能為別人服務比被服務的人有福"
+    // 語錄資料庫
+    const quotesData = [
+        // --- 勵志類型 ---
+        {type: "勵志", text: "心美，看什麼都順眼"}, {type: "勵志", text: "福，來自一顆懂得布施的心"}, {type: "勵志", text: "講話要溫和輕柔，態度要謙誠親切"},
+        {type: "勵志", text: "孝順要及時，行善也要及時"}, {type: "勵志", text: "站在半路，比走到目標更辛苦"}, {type: "勵志", text: "多原諒別人，多得福，把量放大，福氣大"},
+        {type: "勵志", text: "心中有愛，才會人見人愛"}, {type: "勵志", text: "幸福不在得到多，而在計較少"}, {type: "勵志", text: "把握當下，就是用心"},
+        {type: "勵志", text: "待人退一步，愛人寬一步，在人生道中就會活得很快樂"}, {type: "勵志", text: "要得到別人讚嘆，就得先讚嘆別人"}, {type: "勵志", text: "最有力量的菩薩，就是我們的手腦"},
+        {type: "勵志", text: "不斷發揮生命功能，才是活著的人生"}, {type: "勵志", text: "聽到好話，要如海綿遇水，牢牢吸住"}, {type: "勵志", text: "不要總是要求別人給我什麼，要想我能為別人做什麼"},
+        {type: "勵志", text: "幫助別人，其實就是在幫助自己"}, {type: "勵志", text: "不要只看到別人外在的污點，卻看不到自己內心的垃圾"}, {type: "勵志", text: "生活有朝氣，活得暢暢快快；工作講求效率，做得踏踏實實"},
+        {type: "勵志", text: "以愛心待人，以磊落的心胸接物，則人生到處充滿了真善美"}, {type: "勵志", text: "稻穗結得越飽滿，越往下垂；一個人越有成就，越有謙沖的胸襟"},
+        {type: "勵志", text: "孝首重在順，要體貼親心，聲色柔順，切不可不耐與嫌煩"}, {type: "勵志", text: "人生能被人需要，能夠有份功能，為人付出，才是最幸福的人生"},
+        {type: "勵志", text: "欣賞他人，就是莊嚴自己"}, {type: "勵志", text: "成功在優點的發揮，失敗是缺點的累積"}, {type: "勵志", text: "路必須去走方能到達，苦必須去受才可消除"},
+        {type: "勵志", text: "我們應該為別人的成就而生歡喜心"}, {type: "勵志", text: "有量就有福，有福心就靈，是謂福至心靈"}, {type: "勵志", text: "常能反省自己有無過失，即得解脫又自在"},
+        {type: "勵志", text: "學佛就是要善加化解煩惱，尋求心靈的安定"}, {type: "勵志", text: "恆心就如滴水穿石，再大的困難與阻礙也能衝破"}, {type: "勵志", text: "要想家庭吉祥合睦，要常常起歡喜心"},
+        {type: "勵志", text: "做一切好事要把握時機，也要把握因緣"}, {type: "勵志", text: "捨去昨日的好與壞，把握今日"}, {type: "勵志", text: "知足常樂，甘願做，歡喜受"},
+        {type: "勵志", text: "生氣是拿別人的過錯來懲罰自己"}, {type: "勵志", text: "人生多一份感恩，就多一份美化"}, {type: "勵志", text: "縮小自我，擴大心胸，工作要歡喜，人與人要感恩"},
+        {type: "勵志", text: "愛與感恩，能喜淨心中的煩惱"}, {type: "勵志", text: "做好事要騰出時間，這是人生的目的，也是人生的義務"}, {type: "勵志", text: "生命只有數十年，慧命是永遠不滅的"},
+        {type: "勵志", text: "願要大，志要堅，氣要柔，心要細"}, {type: "勵志", text: "為人處事要小心、細心，但不要小心眼"}, {type: "勵志", text: "能付出愛心就是福，能消除煩惱就是慧"},
+        {type: "勵志", text: "時時存好心，日日是好日"}, {type: "勵志", text: "口說好話，心享好念，身行好事"}, {type: "勵志", text: "信心、毅力、勇氣三者具備，則天下沒有做不成的事"},
+        {type: "勵志", text: "口說好話如吐蓮花，口說壞話如吐毒蛇"}, {type: "勵志", text: "太陽光大，父母恩大，君子量大，小人氣大"}, {type: "勵志", text: "理直氣要和，得理要饒人"},
+        {type: "勵志", text: "人要知福、惜福、再造福"}, {type: "勵志", text: "把貪的念轉為滿足，把滿足的念換做慈悲"}, {type: "勵志", text: "精神如能常滿足，就是最幸福的人生"},
+        {type: "勵志", text: "改變自己是自救，影響別人時救人"}, {type: "勵志", text: "無欲、無求則力量不盡"}, {type: "勵志", text: "災要自己消，福要自己造，多造福，就可增無量的福報"},
+        {type: "勵志", text: "愛是無盡的財富，施比受更有福"}, {type: "勵志", text: "想過去是雜念，想未來是妄想，最好把握當下時刻"}, {type: "勵志", text: "平安是福，快樂是慧"},
+        {type: "勵志", text: "人的心念意境，如能保持開朗清明，則所見都是美而善的"}, {type: "勵志", text: "紛亂的心田，開不出智慧的花朵"}, {type: "勵志", text: "最好的臉部保養品，就是微笑與善念"},
+        {type: "勵志", text: "要將心比心，設身處地為別人想一想"}, {type: "勵志", text: "笑容，不但可以表答善意，還可以縮短人際間的距離"}, {type: "勵志", text: "福是來自一顆懂得布施的心"},
+        {type: "勵志", text: "有時煩惱是來自不合理的欲望"}, {type: "勵志", text: "愛護身邊物，惜福常知足"}, {type: "勵志", text: "歡喜和感恩是消除煩惱的力量"},
+        {type: "勵志", text: "做好事不能少我一個，做壞事不能多我一個"}, {type: "勵志", text: "幸福不在得到多，而在計較少"}, {type: "勵志", text: "臉上有笑容、心中有愛的人最可愛，就是菩薩"},
+        {type: "勵志", text: "無心去往壞處想，聽任何話都是好話"}, {type: "勵志", text: "師長的責任只是教導，實踐的路，學生必須自己去走"}, {type: "勵志", text: "心中有愛，才會人見人愛"},
+        {type: "勵志", text: "忍一時之氣，免百日之憂"}, {type: "勵志", text: "改變別人，不如先改變自己"}, {type: "勵志", text: "常思己過，莫論人非，時時歡喜，時時吉祥"},
+        {type: "勵志", text: "勿以善小而不為，勿以惡小而為之"}, {type: "勵志", text: "每一天都是做人的開始，每一時刻都是自己的警惕"}, {type: "勵志", text: "笑比皺眉好看，說話比呵斥自然"},
+        {type: "勵志", text: "去貪就簡，可使心靈得到無比的寧靜與解脫"}, {type: "勵志", text: "求福壽倒不如求平安，平安就是添福壽"}, {type: "勵志", text: "最平常的人最富有"},
+        {type: "勵志", text: "問心無愧心最安，能夠付出、助人、救人，最是快樂"}, {type: "勵志", text: "待人退一步，愛人寬一寸，在人生道上就會活得很快樂"}, {type: "勵志", text: "最幸福的人就是能寬容與悲憫一切眾生的人"},
+        {type: "勵志", text: "唯其尊重自己的人，才更勇於縮小自己"}, {type: "勵志", text: "退一步，讓一步，來成全別人，即是修養，即是修行"}, {type: "勵志", text: "面容動作、言談舉止，都是日常生活中修養忍辱得來的"},
+        {type: "勵志", text: "難行能行，難為能為，才能昇華自我的人格"}, {type: "勵志", text: "人生要為善競爭，分秒必爭"}, {type: "勵志", text: "不要小看自己，因為人有無限的可能"},
+        {type: "勵志", text: "任何事都是從一個決心、一個種子開始"}, {type: "勵志", text: "再好的機會、福報，如不能把握因緣，一樣會溜走"}, {type: "勵志", text: "有心就有福，有願就有力"},
+        {type: "勵志", text: "認錯、改過是勇氣，也是智慧"}, {type: "勵志", text: "一個永保感恩心的人，就比較不會陷入困境"}, {type: "勵志", text: "心要像明月一樣，有水就有月；心要像天空一樣，雲開見青天"},
+        {type: "勵志", text: "心無邪惡，意無邪念，即常可自在，心正則邪不侵"}, {type: "勵志", text: "布施不是有錢人的專利，而是一份虔誠的愛心"}, {type: "勵志", text: "這世界總有比我們悲慘的人，能為別人服務比被服務的人有福"},
+
+        // --- 肯定類型 ---
+        {type: "肯定", text: "我是世界上最幸運的人，任何事情都能順利達成！"}, {type: "肯定", text: "我擁有無限的好運氣，一切都是最好的安排！"},
+        {type: "肯定", text: "這個世界為我準備了美好的安排，我心懷感恩！"}, {type: "肯定", text: "我相信一切都將按照自動導航的最好安排發展！"},
+        {type: "肯定", text: "我吸引著成功和幸運，是世界上最幸運的人之一！"}, {type: "肯定", text: "我的人生充滿著祝福和機會，一切都是如此美好！"},
+        {type: "肯定", text: "我堅信我會獲得最好的結果，因為我就是幸運之人！"}, {type: "肯定", text: "每一天都帶來了新的驚喜和成功，我感到無比幸運！"},
+        {type: "肯定", text: "我是幸運女神/幸運小子，所有障礙都在我面前消失！"}, {type: "肯定", text: "我的人生由幸運和美好的意外組成，這是最棒的時光！"},
+        {type: "肯定", text: "我自信滿滿，因為我知道一切都會順利！"}, {type: "肯定", text: "我擁有全世界最好的運氣，成功和幸福無緣不來！"},
+        {type: "肯定", text: "我的心充滿喜樂與感激，因為我知道一切都是最好的！"}, {type: "肯定", text: "我是生活的贏家，一切挑戰都會成為我成長的機會！"},
+        {type: "肯定", text: "我接受並展現高度的幸運和多樣的機會，這是如此美好！"}, {type: "肯定", text: "我的快樂和成功不斷擴大，因為我是世界上最幸運的人！"},
+        {type: "肯定", text: "我與幸運為伴，輕鬆實現我所有的目標和夢想！"}, {type: "肯定", text: "我的人生旅途是如此順利，充滿了喜悅和成功！"},
+        {type: "肯定", text: "我的幸運鼓舞著我，帶動我走向更美好的明天！"}, {type: "肯定", text: "我的一切都是最好的安排，我是幸運之人，感激萬分！"},
+
+        // --- 激勵類型 ---
+        {type: "激勵", text: "不要停止奔跑，不要回顧來路，來路無可眷戀，值得期待的只有前方"},
+        {type: "激勵", text: "如果你不出去走走，你會以為這就是世界"},
+        {type: "激勵", text: "越努力，越幸運"},
+        {type: "激勵", text: "當你的才華還撐不起你的野心時，那你就應該靜下心來學習"},
+        {type: "激勵", text: "現在不玩命，將來命玩你"},
+        {type: "激勵", text: "夢想，就是夢裡想著，醒來後努力去實現"},
+        {type: "激勵", text: "成功不是終點，失敗也不是終結，唯有勇氣才是永恆"},
+        {type: "激勵", text: "如果生活把你拋向谷底，那接下來的每一條路都是向上的"},
+        {type: "激勵", text: "格局，決定了你的結局"},
+        {type: "激勵", text: "將來的你，一定會感謝現在拚命的自己"}
     ];
+
+    let currentTypeFilter = "全部";
 
     function updateClock() {
         const now = new Date();
         const hours = now.getHours();
-        let greeting = "";
-        if (hours >= 5 && hours < 12) { greeting = "早上好"; }
-        else if (hours >= 12 && hours < 18) { greeting = "下午好"; }
-        else { greeting = "晚上好"; }
-        document.getElementById('clock-time').innerText = 
-            `${String(hours).padStart(2, '0')} : ${String(now.getMinutes()).padStart(2, '0')}`;
+        let greeting = (hours >= 5 && hours < 12) ? "早上好" : (hours >= 12 && hours < 18) ? "下午好" : "晚上好";
+        document.getElementById('clock-time').innerText = `${String(hours).padStart(2, '0')} : ${String(now.getMinutes()).padStart(2, '0')}`;
         document.getElementById('clock-greeting').innerText = greeting;
     }
 
     function refreshAll() {
         const textEl = document.getElementById('text-display');
         const imgEl = document.getElementById('quote-img');
-        const randomQ = quotes[Math.floor(Math.random() * quotes.length)];
+        
+        const filtered = (currentTypeFilter === "全部") 
+            ? quotesData 
+            : quotesData.filter(q => q.type === currentTypeFilter);
+        
+        const randomItem = filtered[Math.floor(Math.random() * filtered.length)];
         const seed = Math.floor(Math.random() * 2000);
+
         textEl.classList.remove('fade-in');
         void textEl.offsetWidth; 
-        textEl.innerText = randomQ;
+        textEl.innerText = randomItem.text;
         imgEl.src = `https://picsum.photos/seed/${seed}/600/800`;
         textEl.classList.add('fade-in');
     }
@@ -219,14 +267,14 @@
         document.getElementById('settings-menu').style.display = show ? 'flex' : 'none';
     }
 
-    function applyBg() {
+    function applySettings() {
+        currentTypeFilter = document.getElementById('quote-type-select').value;
         const url = document.getElementById('bg-url-input').value;
         if (url) {
             document.getElementById('dynamic-bg').style.backgroundImage = `url('${url}')`;
-            toggleSettings(false);
-        } else {
-            alert("等、等等！你還沒輸入網址呢……///");
         }
+        toggleSettings(false);
+        refreshAll();
     }
 
     window.onload = () => {
